@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>פאנל ניהולי – Ilay Barber</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#000;
+  color:white;
+  padding:30px;
+}
+
+h1{
+  color:#d4af37;
+  text-align:center;
+}
+
+.day{
+  border:1px solid rgba(212,175,55,0.3);
+  border-radius:15px;
+  padding:15px;
+  margin-bottom:20px;
+  background:#0b0b0b;
+}
+
+.day h2{
+  margin:0 0 10px;
+  color:#d4af37;
+}
+
+.appointment{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.appointment:last-child{
+  border-bottom:none;
+}
+
+.appointment span{
+  font-size:14px;
+}
+
+.status-pending{
+  color:orange;
+}
+
+.status-canceled{
+  color:red;
+  text-decoration:line-through;
+}
+
+button{
+  background:#d4af37;
+  border:none;
+  border-radius:10px;
+  padding:6px 14px;
+  cursor:pointer;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>פאנל ניהולי</h1>
+<div id="panel"></div>
+
+<script>
+const panel = document.getElementById("panel");
+const bookings = JSON.parse(localStorage.getItem("bookings") || "{}");
+
+if(Object.keys(bookings).length === 0){
+  panel.innerHTML = "<p style='text-align:center;color:#777'>אין תורים עדיין</p>";
+}
+
+for(const day in bookings){
+  const dayDiv = document.createElement("div");
+  dayDiv.className = "day";
+
+  const title = document.createElement("h2");
+  title.textContent = day;
+  dayDiv.appendChild(title);
+
+  bookings[day].forEach(b => {
+    const row = document.createElement("div");
+    row.className = "appointment";
+
+    const info = document.createElement("span");
+    info.innerHTML = `
+      ${b.time} | ${b.name} | ${b.style}
+      <strong class="status-${b.status}">(${b.status})</strong>
+    `;
+    row.appendChild(info);
+
+    if(b.status !== "canceled"){
+      const btn = document.createElement("button");
+      btn.textContent = "בטל";
+      btn.onclick = () => cancelAppointment(day, b.time);
+      row.appendChild(btn);
+    }
+
+    dayDiv.appendChild(row);
+  });
+
+  panel.appendChild(dayDiv);
+}
+
+function cancelAppointment(day, time){
+  const bookings = JSON.parse(localStorage.getItem("bookings") || "{}");
+
+  bookings[day] = bookings[day].map(b => {
+    if(b.time === time){
+      return { ...b, status: "canceled" };
+    }
+    return b;
+  });
+
+  localStorage.setItem("bookings", JSON.stringify(bookings));
+  location.reload();
+}
+</script>
+
+</body>
+</html>

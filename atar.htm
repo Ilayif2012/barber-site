@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ilay Barber💈</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+<style>
+:root{
+  --gold:#d4af37;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(to bottom,#000,#111);
+  color:white;
+}
+
+header{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px 40px;
+  border-bottom:1px solid rgba(212,175,55,0.2);
+}
+
+header .logo{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+header img{ height:60px; }
+
+.hero{
+  text-align:center;
+  padding:130px 20px;
+}
+
+.hero h1{
+  font-size:58px;
+  color:var(--gold);
+}
+
+.hero p{
+  font-size:20px;
+  color:#ccc;
+}
+
+.arrow{
+  font-size:28px;
+  margin:20px 0;
+  color:var(--gold);
+  animation:bounce 1.5s infinite;
+}
+
+@keyframes bounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(10px)}
+}
+
+button{
+  height:52px;
+  padding:0 40px;
+  font-size:18px;
+  border:none;
+  border-radius:30px;
+  cursor:pointer;
+  background:linear-gradient(135deg,#d4af37,#b8962e);
+  color:black;
+  font-weight:bold;
+}
+
+.booking-box{
+  max-width:450px;
+  margin:35px auto 0;
+  background:#0b0b0b;
+  padding:25px;
+  border-radius:20px;
+  border:1px solid rgba(212,175,55,0.3);
+  display:none;
+}
+
+.booking-box form{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.booking-box input,
+.booking-box select{
+  width:100%;
+  height:52px;
+  padding:0 14px;
+  border-radius:14px;
+  border:none;
+  background:#1a1a1a;
+  color:white;
+  font-size:16px;
+}
+
+.styles{
+  padding:1px 20px 50px;
+  text-align:center;
+}
+
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:20px;
+  margin-top:30px;
+}
+
+.gallery img{
+  width:100%;
+  border-radius:100px;
+  border:1px solid rgba(212,175,55,0.2);
+  transition:transform .3s;
+}
+
+.gallery img:hover{ transform:scale(1.05); }
+
+footer{
+  text-align:center;
+  padding:10px;
+  color:#777;
+  border-top:1px solid rgba(212,175,55,0.2);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">
+    <img src="logo.png" alt="Ilay Barber">
+    <h2 style="color:var(--gold);margin:0;">Ilay Barber💈</h2>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>💈Ilay Ifergan💈</h1>
+  <p>היי <span id="username">אורח</span>, שמח שבחרת בי לקביעת תור</p>
+  <div class="arrow">⬇</div>
+
+  <button onclick="toggleBooking()">קבע תור</button>
+
+  <div id="bookingBox" class="booking-box">
+    <form onsubmit="bookAppointment(event)">
+      <input type="text" id="name" placeholder="שם מלא" required>
+
+      <select id="date" onchange="loadTimes()" required></select>
+      <select id="time" required></select>
+
+      <select id="style">
+        <option>תספורת-20 ש"ח</option>
+        <option>תספורת + זקן-30 ש"ח</option>
+      </select>
+
+      <button type="submit">אישור וקביעת תור</button>
+    </form>
+  </div>
+</section>
+
+<section class="styles">
+  <h2 style="color:var(--gold)">התספורות שלי</h2>
+  <div class="gallery">
+    <img src="cut1.jpg">
+    <img src="cut2.jpg">
+    <img src="cut3.jpg">
+  </div>
+</section>
+
+<footer>כל הזכויות שמורות © Ilay Barber</footer>
+
+<script>
+const username = prompt("איך קוראים לך?");
+if(username) document.getElementById("username").innerText = username;
+
+function toggleBooking(){
+  const box=document.getElementById("bookingBox");
+  box.style.display = box.style.display==="block" ? "none" : "block";
+  loadDays();
+}
+
+const START=18, END=21;
+
+function generateTimes(){
+  const arr=[];
+  for(let h=START;h<END;h++){
+    arr.push(`${String(h).padStart(2,"0")}:00`);
+    arr.push(`${String(h).padStart(2,"0")}:30`);
+  }
+  return arr;
+}
+
+function loadDays(){
+  const sel=document.getElementById("date");
+  sel.innerHTML="";
+  const bookings=JSON.parse(localStorage.getItem("bookings")||"{}");
+  const all=generateTimes();
+
+  for(let i=0;i<7;i++){
+    const d=new Date();
+    d.setDate(d.getDate()+i);
+    const key=d.toISOString().split("T")[0];
+    const name=d.toLocaleDateString("he-IL",{weekday:"long"});
+
+    const dayBookings = (bookings[key]||[]).filter(b=>b.status!=="canceled");
+    const opt=document.createElement("option");
+    opt.value=key;
+    opt.textContent=name;
+
+    if(dayBookings.length>=all.length){
+      opt.style.color="red";
+      opt.textContent+=" (מלא)";
+    }
+    sel.appendChild(opt);
+  }
+  loadTimes();
+}
+
+function loadTimes(){
+  const tsel=document.getElementById("time");
+  tsel.innerHTML="";
+  const d=document.getElementById("date").value;
+  const bookings=JSON.parse(localStorage.getItem("bookings")||"{}");
+  const taken=(bookings[d]||[]).filter(b=>b.status!=="canceled").map(b=>b.time);
+
+  generateTimes().forEach(t=>{
+    if(!taken.includes(t)){
+      const o=document.createElement("option");
+      o.value=t;
+      o.textContent=t;
+      tsel.appendChild(o);
+    }
+  });
+}
+
+function bookAppointment(e){
+  e.preventDefault();
+
+  const n=name.value;
+  const d=date.value;
+  const t=time.value;
+  const s=style.value;
+
+  const bookings=JSON.parse(localStorage.getItem("bookings")||"{}");
+  bookings[d]=bookings[d]||[];
+
+  if(bookings[d].some(b=>b.time===t && b.status!=="canceled")){
+    alert("❌ השעה הזו כבר תפוסה");
+    return;
+  }
+
+  bookings[d].push({
+    name:n,
+    time:t,
+    style:s,
+    status:"pending"
+  });
+
+  localStorage.setItem("bookings",JSON.stringify(bookings));
+
+  alert("✅ התור נקלט בהצלחה!");
+
+  const msg =
+    `שלום, אני ${n}%0A`+
+    `רוצה לקבוע תור%0A`+
+    `תאריך: ${d}%0Aשעה: ${t}%0Aסוג: ${s}`;
+
+  setTimeout(()=>{
+    window.open(`https://wa.me/972501234567?text=${msg}`,"_blank");
+  },200);
+
+  document.getElementById("bookingBox").style.display="none";
+}
+</script>
+
+</body>
+</html>
